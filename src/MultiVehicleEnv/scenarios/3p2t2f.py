@@ -229,7 +229,7 @@ class Scenario(BaseScenario):
         
         
         if  self.add_direction_encoder == 'train':
-            return np.concatenate([agent.data_slot['direction_obs']] + agent_pos + landmark_pos + obstacle_pos + other_pos + [in_view])
+            return np.concatenate([agent.data_slot['direction_obs']]+agent_pos + landmark_pos + obstacle_pos + other_pos + [[in_view]] )
         elif self.add_direction_encoder == 'keyboard':
             key_direction = world.data_slot['key_direction']
             one_hot_direction = world.data_slot['direction_decoder'][key_direction]

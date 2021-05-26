@@ -24,7 +24,7 @@ parser.add_argument('--usegui', action='store_true', default=False)
 parser.add_argument('--step-t',type=float,default=1.0)
 parser.add_argument('--sim-step',type=int,default=100)
 parser.add_argument('--direction_alpha', type=float, default=1.0)
-parser.add_argument('--add_direction_encoder', action='store_true', default=False)
+parser.add_argument('--add_direction_encoder',type=str, default='train')
 
 
 args = parser.parse_args()
