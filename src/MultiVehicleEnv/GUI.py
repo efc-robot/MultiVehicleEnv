@@ -1,33 +1,40 @@
 import time
 import pickle
+from typing import Union
 import pyglet
 import os
 import threading
-from . import rendering 
+from . import rendering
+from .environment import MultiVehicleEnv
 
 
 class GUI(object):
-    def __init__(self,dir:str = '/dev/shm/gui_port' , fps:float = 24):
+    def __init__(self,port_type:str = 'file',gui_port:Union[str,MultiVehicleEnv] = '/dev/shm/gui_port' , fps:float = 24):
         self.field_range = None
         self.cam_bound = None
         self.viewer = None
         self.file_handle = None
-
-        self.gui_port = dir
+        self.port_type = port_type
+        self.gui_port:Union[str,MultiVehicleEnv] = gui_port
         self.fps = fps
 
 
     def _read_data(self):
-        while(True):
-            if os.path.exists(self.gui_port):
-                self.file_handle = open(self.gui_port, "rb")
-                self.file_handle.seek(0)
-                gui_data = pickle.load(self.file_handle)
-                self.file_handle.close
-                return gui_data
-            else:
-                print('%s does not exist, wait for Simulator dump GUI data'%self.gui_port)
-                time.sleep(1)
+        if self.port_type == 'file':
+            while(True):
+                if os.path.exists(self.gui_port):
+                    self.file_handle = open(self.gui_port, "rb")
+                    self.file_handle.seek(0)
+                    gui_data = pickle.load(self.file_handle)
+                    self.file_handle.close
+                    return gui_data
+                else:
+                    print('%s does not exist, wait for Simulator dump GUI data'%self.gui_port)
+                    time.sleep(1)
+        elif self.port_type == 'direct':
+            gui_data = self.gui_port.world.dumpGUI(port_type='direct')
+            return gui_data
+
 
     def init_viewer(self):
         gui_data = self._read_data()

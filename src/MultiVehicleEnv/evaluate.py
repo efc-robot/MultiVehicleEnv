@@ -2,6 +2,7 @@ import sys
 import termios
 import contextlib
 from .environment import MultiVehicleEnv
+from .GUI import GUI
 import numpy as np
 from typing import Callable, List, Optional, Sequence
 import threading
@@ -15,8 +16,12 @@ class EvaluateWrap(object):
                        policy_list:Sequence[T_Policy]):
         self.env = env
         self.policy_list:Optional[Sequence[T_Policy]] = policy_list
-
         
+        if env.world.GUI_port is not None:
+            self.GUI = GUI(port_type='direct',gui_port = self.env)
+        else:
+            self.GUI = None
+
     def run_test(self):
         n_obs = self.env.reset()
         for step_idx in range(1000000):
@@ -40,6 +45,10 @@ class EvaluateWrap(object):
             termios.tcsetattr(file.fileno(), termios.TCSADRAIN, old_attrs)
 
     def main(self):
+        if self.GUI is not None:
+            GUI_t = threading.Thread(target=self.GUI.spin())
+            GUI_t.setDaemon(True)
+            GUI_t.start()
         decoder = {'e':0,'q':1,'z':2,'c':3}
         while True:
             cmd = input('waiting for cmd: ')

@@ -2,7 +2,7 @@ from typing import *
 import numpy as np
 import pickle
 import time
-
+import copy
 
 class VehicleState(object):
     def __init__(self):
@@ -171,22 +171,25 @@ class World(object):
                     break
     
     # pickle the GUI data and dump to the sheard memory file
-    def dumpGUI(self):
-        if self.GUI_port is not None and self.GUI_file is None:
-            try:
-                self.GUI_file = open(self.GUI_port, "w+b")
-            except IOError:
-                print('open GUI_file %s failed'%self.GUI_port)
-        if self.GUI_port is not None:
-            GUI_data = {'field_range':self.field_range,
-                        'total_time':self.total_time,
-                        'vehicle_list':self.vehicle_list,
-                        'landmark_list':self.landmark_list,
-                        'obstacle_list':self.obstacle_list,
-                        'info':self.data_slot['key_direction']}
-            self.GUI_file.seek(0)
-            pickle.dump(GUI_data,self.GUI_file)
-            self.GUI_file.flush()
+    def dumpGUI(self, port_type = 'file'):
+        GUI_data = {'field_range':self.field_range,
+                    'total_time':self.total_time,
+                    'vehicle_list':self.vehicle_list,
+                    'landmark_list':self.landmark_list,
+                    'obstacle_list':self.obstacle_list,
+                    'info':self.data_slot['key_direction']}
+        if port_type == 'direct':
+            return copy.deepcopy(GUI_data)
+        if port_type == 'file':
+            if self.GUI_port is not None and self.GUI_file is None:
+                try:
+                    self.GUI_file = open(self.GUI_port, "w+b")
+                except IOError:
+                    print('open GUI_file %s failed'%self.GUI_port)
+            if self.GUI_port is not None:
+                self.GUI_file.seek(0)
+                pickle.dump(GUI_data,self.GUI_file)
+                self.GUI_file.flush()
 
     # update state of the world
     def step(self):

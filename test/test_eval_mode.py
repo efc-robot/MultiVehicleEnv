@@ -1,7 +1,6 @@
 import random
 import numpy as np
 import argparse
-from MultiVehicleEnv.GUI import GUI
 from MultiVehicleEnv.evaluate import EvaluateWrap
 
 
@@ -34,7 +33,4 @@ def policy(obs:np.ndarray)->int:
 env = make_env('3p2t2f', args)
 policy_list = [policy,policy,policy]
 wrap = EvaluateWrap(env,policy_list)
-GUI_instance = GUI(dir = args.gui_port, fps = args.fps)
-GUI_instance.spin()
-
 wrap.main()

@@ -47,8 +47,6 @@ class MultiVehicleEnv(gym.Env):
             else:
                 obs_dim = len(self.observation_callback(vehicle, self.world))
             self.observation_space.append(spaces.Box(low=-np.inf, high=+np.inf, shape=(obs_dim,), dtype=np.float32))
-        
-
 
     # get info used for benchmarking
     def _get_info(self, vehicle):

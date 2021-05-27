@@ -37,3 +37,4 @@ while True:
         action = [random.randint(0,4) for _ in range(3)]
         obs,reward,done,info = env.step(action)
         #time.sleep(0.5)
+    #train RL
