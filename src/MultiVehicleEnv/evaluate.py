@@ -22,6 +22,13 @@ class EvaluateWrap(object):
         else:
             self.GUI = None
 
+        if self.GUI is not None:
+            GUI_t = threading.Thread(target=self.GUI.spin())
+            GUI_t.setDaemon(True)
+            GUI_t.start()
+
+        self.main_spin()
+
     def run_test(self):
         n_obs = self.env.reset()
         for step_idx in range(1000000):
@@ -44,20 +51,16 @@ class EvaluateWrap(object):
         finally:
             termios.tcsetattr(file.fileno(), termios.TCSADRAIN, old_attrs)
 
-    def main(self):
-        if self.GUI is not None:
-            GUI_t = threading.Thread(target=self.GUI.spin())
-            GUI_t.setDaemon(True)
-            GUI_t.start()
+    def main_spin(self):
         decoder = {'e':0,'q':1,'z':2,'c':3}
         while True:
             cmd = input('waiting for cmd: ')
             self.stop_signal = False
             print(cmd)
             if cmd == 's':
-                t= threading.Thread(target=self.run_test)
-                t.setDaemon(True)
-                t.start()
+                self.test_thread= threading.Thread(target=self.run_test)
+                self.test_thread.setDaemon(True)
+                self.test_thread.start()
                 print('start for keyboard ctrl')
                 with self.raw_mode(sys.stdin):
                     try:

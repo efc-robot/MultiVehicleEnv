@@ -33,4 +33,3 @@ def policy(obs:np.ndarray)->int:
 env = make_env('3p2t2f', args)
 policy_list = [policy,policy,policy]
 wrap = EvaluateWrap(env,policy_list)
-wrap.main()
