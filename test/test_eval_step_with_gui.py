@@ -2,7 +2,7 @@ import random
 import numpy as np
 import argparse
 from MultiVehicleEnv.evaluate import EvaluateWrap
-
+import time
 
 def make_env(scenario_name, args):
     from MultiVehicleEnv.environment import MultiVehicleEnv
@@ -31,5 +31,11 @@ args = parser.parse_args()
 def policy(obs:np.ndarray)->int:
     return random.randint(0,6)
 env = make_env('3p2t2f', args)
-policy_list = [policy,policy,policy]
-wrap = EvaluateWrap(env,policy_list)
+while True:
+    env.reset()
+    print('reset env')
+    for idx in range(10):
+        action = [random.randint(0,4) for _ in range(3)]
+        obs,reward,done,info = env.step(action)
+        env.render()
+        time.sleep(0.01)

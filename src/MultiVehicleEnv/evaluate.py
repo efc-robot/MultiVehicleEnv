@@ -16,14 +16,12 @@ class EvaluateWrap(object):
                        policy_list:Sequence[T_Policy]):
         self.env = env
         self.policy_list:Optional[Sequence[T_Policy]] = policy_list
-        
         if env.world.GUI_port is not None:
             self.GUI = GUI(port_type='direct',gui_port = self.env)
         else:
             self.GUI = None
-
         if self.GUI is not None:
-            GUI_t = threading.Thread(target=self.GUI.spin())
+            GUI_t = threading.Thread(target=self.GUI._render_target)
             GUI_t.setDaemon(True)
             GUI_t.start()
 

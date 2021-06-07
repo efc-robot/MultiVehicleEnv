@@ -1,8 +1,7 @@
-import time
 import random
+import numpy as np
 import argparse
-
-
+from MultiVehicleEnv.evaluate import EvaluateWrap
 
 
 def make_env(scenario_name, args):
@@ -20,21 +19,17 @@ def make_env(scenario_name, args):
 
 parser = argparse.ArgumentParser(description="GUI for Multi-VehicleEnv")
 parser.add_argument('--gui-port',type=str,default='/dev/shm/gui_port')
-parser.add_argument('--usegui', action='store_true', default=False)
+parser.add_argument('--fps',type=int,default=24)
+parser.add_argument('--usegui', action='store_true', default=True)
 parser.add_argument('--step-t',type=float,default=1.0)
 parser.add_argument('--sim-step',type=int,default=100)
 parser.add_argument('--direction_alpha', type=float, default=1.0)
-parser.add_argument('--add_direction_encoder',type=str, default='train')
+parser.add_argument('--add_direction_encoder',type=str, default='keyboard')
 
 
 args = parser.parse_args()
-
+def policy(obs:np.ndarray)->int:
+    return random.randint(0,6)
 env = make_env('3p2t2f', args)
-while True:
-    env.reset()
-    print('reset env')
-    for idx in range(10):
-        action = [random.randint(0,4) for _ in range(3)]
-        obs,reward,done,info = env.step(action)
-        #time.sleep(0.5)
-    #train RL
+policy_list = [policy,policy,policy]
+wrap = EvaluateWrap(env,policy_list)

@@ -1,13 +1,13 @@
-from typing import Any, Callable, Dict, List
+from typing import Any, Callable, Dict, List,Union
 
 import gym
 from gym import spaces
 import numpy as np
 from .basic import World
+from .GUI import GUI
 
 
-
-T_action = List[int]
+T_action = Union[List[int],List[List[int]]]
 # environment for all vehicles in the multi-vehicle world
 # currently code assumes that no vehicle will be created/destroyed at runtime!
 class MultiVehicleEnv(gym.Env):
@@ -47,6 +47,7 @@ class MultiVehicleEnv(gym.Env):
             else:
                 obs_dim = len(self.observation_callback(vehicle, self.world))
             self.observation_space.append(spaces.Box(low=-np.inf, high=+np.inf, shape=(obs_dim,), dtype=np.float32))
+        self.GUI = None
 
     # get info used for benchmarking
     def _get_info(self, vehicle):
@@ -81,8 +82,11 @@ class MultiVehicleEnv(gym.Env):
         self.vehicle_list = self.world.vehicle_list
         # set action for each vehicle
         for i, vehicle in enumerate(self.vehicle_list):
-            assert isinstance(action_n[i],int)
-            [ctrl_vel_b,ctrl_phi] = vehicle.discrete_table[action_n[i]]
+            if isinstance(action_n[i],int):
+                action_i = action_n[i]
+            else:
+                action_i = list(action_n[i]).index(1)
+            [ctrl_vel_b,ctrl_phi] = vehicle.discrete_table[action_i]
             vehicle.state.ctrl_vel_b = ctrl_vel_b
             vehicle.state.ctrl_phi = ctrl_phi
         # advance world state
@@ -90,7 +94,7 @@ class MultiVehicleEnv(gym.Env):
         # record observation for each vehicle
         for vehicle in self.vehicle_list:
             obs_n.append(self._get_obs(vehicle))
-            reward_n.append(self._get_reward(vehicle))
+            reward_n.append([self._get_reward(vehicle)])
             done_n.append(self._get_done(vehicle))
 
             info_n['n'].append(self._get_info(vehicle))
@@ -115,3 +119,11 @@ class MultiVehicleEnv(gym.Env):
         for vehicle_list in self.vehicle_list:
             obs_n.append(self._get_obs(vehicle_list))
         return obs_n
+    
+    def render(self,mode = 'human'):
+        if self.GUI is None:
+            self.GUI = GUI(port_type='direct',gui_port=self,fps = 24)
+            self.GUI.init_viewer()
+            self.GUI.init_object()
+        self.GUI._render()
+        pass

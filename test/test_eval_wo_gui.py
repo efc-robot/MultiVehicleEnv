@@ -33,8 +33,8 @@ env = make_env('3p2t2f', args)
 while True:
     env.reset()
     print('reset env')
-    for idx in range(10):
-        action = [random.randint(0,4) for _ in range(3)]
+    for idx in range(100):
+        action = [random.randint(0,6) for _ in range(3)]
         obs,reward,done,info = env.step(action)
         #time.sleep(0.5)
     #train RL

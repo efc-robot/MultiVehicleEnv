@@ -3,20 +3,17 @@ import pickle
 from typing import Union
 import pyglet
 import os
-import threading
-from . import rendering
-from .environment import MultiVehicleEnv
-
 
 class GUI(object):
-    def __init__(self,port_type:str = 'file',gui_port:Union[str,MultiVehicleEnv] = '/dev/shm/gui_port' , fps:float = 24):
+    def __init__(self,port_type:str = 'file',gui_port = '/dev/shm/gui_port' , fps:float = 24):
         self.field_range = None
         self.cam_bound = None
         self.viewer = None
         self.file_handle = None
         self.port_type = port_type
-        self.gui_port:Union[str,MultiVehicleEnv] = gui_port
+        self.gui_port = gui_port
         self.fps = fps
+        self.mode = 'human'
 
 
     def _read_data(self):
@@ -37,6 +34,7 @@ class GUI(object):
 
 
     def init_viewer(self):
+        from . import rendering
         gui_data = self._read_data()
         self.field_range = gui_data['field_range']
         if self.cam_bound is None:
@@ -66,6 +64,7 @@ class GUI(object):
                                self.cam_bound[2]+self.cam_bound[3])
     
     def init_object(self):
+        from . import rendering
         self.viewer.geoms = []
         gui_data = self._read_data()
         
@@ -138,35 +137,39 @@ class GUI(object):
             self.viewer.add_geom(vehicle_geom['base'][0])
             self.viewer.add_geom(vehicle_geom['front_line'][0])
             self.viewer.add_geom(vehicle_geom['back_line'][0])
-
+    
     def _render(self):
+        gui_data = self._read_data()
+        self.vehicle_list = gui_data['vehicle_list']
+        self.landmark_list = gui_data['landmark_list']
+        self.obstacle_list = gui_data['obstacle_list']
+        self.total_time = gui_data['total_time']
+        self.info = str(gui_data['info'])
+        for obstacle, obstacle_geom in zip(self.obstacle_list, self.obstacle_geom_list):
+            obstacle_geom['total_xform'].set_translation(obstacle.state.coordinate[0],obstacle.state.coordinate[1])
+        for landmark, landmark_geom in zip(self.landmark_list, self.landmark_geom_list):
+            landmark_geom['total_xform'].set_translation(landmark.state.coordinate[0],landmark.state.coordinate[1])
+        for vehicle, vehicle_geom in zip(self.vehicle_list,self.vehicle_geom_list):
+            vehicle_geom['front_line'][1].set_rotation(vehicle.state.phi)
+            vehicle_geom['total_xform'].set_rotation(vehicle.state.theta)
+            vehicle_geom['total_xform'].set_translation(vehicle.state.coordinate[0],vehicle.state.coordinate[1])
+        
+            
+        self.viewer.render(time = '%.1f'%(self.total_time),info = self.info,return_rgb_array = self.mode=='rgb_array')
+
+    def _render_target(self):
         self.init_viewer()
         self.init_object()
 
         while True:
-            gui_data = self._read_data()
-            self.vehicle_list = gui_data['vehicle_list']
-            self.landmark_list = gui_data['landmark_list']
-            self.obstacle_list = gui_data['obstacle_list']
-            self.total_time = gui_data['total_time']
-            self.info = str(gui_data['info'])
-            for obstacle, obstacle_geom in zip(self.obstacle_list, self.obstacle_geom_list):
-                obstacle_geom['total_xform'].set_translation(obstacle.state.coordinate[0],obstacle.state.coordinate[1])
-            for landmark, landmark_geom in zip(self.landmark_list, self.landmark_geom_list):
-                landmark_geom['total_xform'].set_translation(landmark.state.coordinate[0],landmark.state.coordinate[1])
-            for vehicle, vehicle_geom in zip(self.vehicle_list,self.vehicle_geom_list):
-                vehicle_geom['front_line'][1].set_rotation(vehicle.state.phi)
-                vehicle_geom['total_xform'].set_rotation(vehicle.state.theta)
-                vehicle_geom['total_xform'].set_translation(vehicle.state.coordinate[0],vehicle.state.coordinate[1])
-            mode = 'human'
             if self.viewer.closed:
                 self.init_viewer()
                 self.init_object()
-            self.viewer.render(time = '%.1f'%(self.total_time),info = self.info,return_rgb_array = mode=='rgb_array')
+            self._render()
             time.sleep(1.0/self.fps)
     
-    def spin(self):
-        t= threading.Thread(target=self._render)
-        t.setDaemon(True)
-        t.start()
+    #def getspin(self):
+    #    t= threading.Thread(target=self._render_target)
+    #    t.setDaemon(True)
+    #    t.start()
         #t.join()
