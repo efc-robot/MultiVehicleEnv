@@ -94,6 +94,10 @@ class MultiVehicleEnv(gym.Env):
             done_n.append(self._get_done(vehicle))
 
             info_n['n'].append(self._get_info(vehicle))
+        
+        if  'max_step_number' in self.world.data_slot.keys():
+            step_done = self.world.data_slot['max_step_number']<=self.world.data_slot['total_step_number']
+            info_n['step_done'] = step_done
 
         # all vehicles get total reward in cooperative case
         reward = np.sum(reward_n)

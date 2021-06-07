@@ -70,12 +70,13 @@ class Scenario(BaseScenario):
             entity.color  = [[0.0,0.0,0.0],1.0]
             world.obstacle_list.append(entity)
 
+        world.data_slot['max_step_number'] = 20
         # make initial conditions
         self.reset_world(world)
         return world
 
     def reset_world(self, world:World):
-
+        world.data_slot['total_step_number'] = 0
         # set random initial states
         for agent in world.vehicle_list:
             agent.state.theta = np.random.uniform(0,2*3.14159)
@@ -180,7 +181,8 @@ class Scenario(BaseScenario):
         # collision reward
         if agent.state.crashed:
             rew -= 1.0
-
+        
+        world.data_slot['total_step_number'] += 1
         return rew
 
     def observation(self,agent:Vehicle, world:World):
