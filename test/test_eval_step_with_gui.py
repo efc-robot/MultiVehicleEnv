@@ -3,6 +3,7 @@ import numpy as np
 import argparse
 from MultiVehicleEnv.evaluate import EvaluateWrap
 import time
+from MultiVehicleEnv.utils import naive_inference
 
 def make_env(scenario_name, args):
     from MultiVehicleEnv.environment import MultiVehicleEnv
@@ -24,18 +25,29 @@ parser.add_argument('--usegui', action='store_true', default=False)
 parser.add_argument('--step-t',type=float,default=1.0)
 parser.add_argument('--sim-step',type=int,default=100)
 parser.add_argument('--direction_alpha', type=float, default=1.0)
-parser.add_argument('--add_direction_encoder',type=str, default='keyboard')
+parser.add_argument('--add_direction_encoder',type=str, default='train')
 
-
+discrete_table = {0:( 0.0, 0.0),
+                  1:( 1.0, 0.0), 2:( 1.0, 1.0), 3:( 1.0, -1.0),
+                  4:(-1.0, 0.0), 5:(-1.0, 1.0), 6:(-1.0, -1.0)}
 args = parser.parse_args()
 def policy(obs:np.ndarray)->int:
     return random.randint(0,6)
-env = make_env('3p2t2f', args)
+env = make_env('3p1t2f', args)
 while True:
-    env.reset()
+    obs = env.reset()
     print('reset env')
-    for idx in range(10):
-        action = [random.randint(0,4) for _ in range(3)]
+    for idx in range(25):
+        action = []
+        for i in range(3):
+            tx = obs[i][8]
+            ty = obs[i][9]
+            theta =  np.arctan2(obs[i][7],obs[i][6])
+            c_action = naive_inference(tx,ty,theta)
+            for idx in range(7):
+                if c_action[0] == discrete_table[idx][0] and c_action[1] == discrete_table[idx][1]:
+                    action.append(idx)
+                    break
         obs,reward,done,info = env.step(action)
         env.render()
         time.sleep(0.01)

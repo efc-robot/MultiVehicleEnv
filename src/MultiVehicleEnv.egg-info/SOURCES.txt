@@ -12,5 +12,6 @@ MultiVehicleEnv.egg-info/SOURCES.txt
 MultiVehicleEnv.egg-info/dependency_links.txt
 MultiVehicleEnv.egg-info/not-zip-safe
 MultiVehicleEnv.egg-info/top_level.txt
+MultiVehicleEnv/scenarios/3p1t2f.py
 MultiVehicleEnv/scenarios/3p2t2f.py
 MultiVehicleEnv/scenarios/__init__.py

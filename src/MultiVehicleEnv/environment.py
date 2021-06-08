@@ -109,6 +109,12 @@ class MultiVehicleEnv(gym.Env):
             reward_n = [reward] * self.vehicle_number
         return obs_n, reward_n, done_n, info_n
 
+    def seed(self, seed=None):
+        if seed is None:
+            np.random.seed(1)
+        else:
+            np.random.seed(seed)
+
     def reset(self):
         # reset world
         self.reset_callback(self.world)
@@ -126,4 +132,7 @@ class MultiVehicleEnv(gym.Env):
             self.GUI.init_viewer()
             self.GUI.init_object()
         self.GUI._render()
+        direction = []
+        for a in self.world.vehicle_list:
+            direction.append(a.data_slot['direction_obs'])
         pass

@@ -20,6 +20,7 @@ class Scenario(BaseScenario):
         world.step_t = args.step_t
         world.sim_step = args.sim_step
         world.field_range = [-2.0,-2.0,2.0,2.0]
+
         # define the task parameters
         # one agent can know where is the lanmark
         world.data_slot['view_threshold'] = 10.0
@@ -36,25 +37,25 @@ class Scenario(BaseScenario):
         agent_number = 3
         world.vehicle_list = []
         for idx in range(agent_number):
-             agent = Vehicle()
-             agent.r_safe     = 0.17
-             agent.L_car      = 0.25
-             agent.W_car      = 0.18
-             agent.L_axis     = 0.2
-             agent.K_vel      = 0.707
-             agent.K_phi      = 0.298
-             agent.dv_dt      = 2.0
-             agent.dphi_dt    = 3.0
-             agent.color      = [[1.0,idx/3.0,idx/3.0],1.0]
-             world.vehicle_list.append(agent)
+            agent = Vehicle()
+            agent.r_safe     = 0.17
+            agent.L_car      = 0.25
+            agent.W_car      = 0.18
+            agent.L_axis     = 0.2
+            agent.K_vel      = 0.707
+            agent.K_phi      = 0.298
+            agent.dv_dt      = 2.0
+            agent.dphi_dt    = 3.0
+            agent.color      = [[1.0,idx/3.0,idx/3.0],1.0]
+            world.vehicle_list.append(agent)
             
 
         # add landmark_list
-        landmark_number = 2
+        landmark_number = 1
         world.landmark_list = []
         for idx in range(landmark_number):
             entity = Entity()
-            entity.radius = 0.2
+            entity.radius = 0.4
             entity.collideable = False
             entity.color  = [[0.0,1.0,0.0],0.1]
             world.landmark_list.append(entity)
