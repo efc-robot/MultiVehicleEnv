@@ -136,3 +136,6 @@ class MultiVehicleEnv(gym.Env):
         for a in self.world.vehicle_list:
             direction.append(a.data_slot['direction_obs'])
         pass
+    
+    def ros_step(self,total_time):
+        self.world.ros_step(total_time)
