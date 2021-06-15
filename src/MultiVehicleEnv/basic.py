@@ -177,7 +177,7 @@ class World(object):
                     'vehicle_list':self.vehicle_list,
                     'landmark_list':self.landmark_list,
                     'obstacle_list':self.obstacle_list,
-                    'info':self.data_slot['key_direction']}
+                    'info':self.data_slot}
         if port_type == 'direct':
             return copy.deepcopy(GUI_data)
         if port_type == 'file':

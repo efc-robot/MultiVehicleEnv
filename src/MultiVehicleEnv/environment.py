@@ -37,7 +37,10 @@ class MultiVehicleEnv(gym.Env):
         # action spaces
         self.action_space:List[spaces.Discrete] = []
         for vehicle in self.vehicle_list:
-            self.action_space.append(spaces.Discrete(len(vehicle.discrete_table)))
+            if vehicle.discrete_table is None:
+                self.action_space.append(spaces.Box(low=-1.0,high=1.0,shape=(2,)))
+            else:
+                self.action_space.append(spaces.Discrete(len(vehicle.discrete_table)))
 
         # observation space
         self.observation_space = []
@@ -82,11 +85,15 @@ class MultiVehicleEnv(gym.Env):
         self.vehicle_list = self.world.vehicle_list
         # set action for each vehicle
         for i, vehicle in enumerate(self.vehicle_list):
-            if isinstance(action_n[i],int):
-                action_i = action_n[i]
+            if vehicle.discrete_table is None:
+                ctrl_vel_b = action_n[i][0]
+                ctrl_phi = action_n[i][1]
             else:
-                action_i = list(action_n[i]).index(1)
-            [ctrl_vel_b,ctrl_phi] = vehicle.discrete_table[action_i]
+                if isinstance(action_n[i],int):
+                    action_i = action_n[i]
+                else:
+                    action_i = list(action_n[i]).index(1)
+                [ctrl_vel_b,ctrl_phi] = vehicle.discrete_table[action_i]
             vehicle.state.ctrl_vel_b = ctrl_vel_b
             vehicle.state.ctrl_phi = ctrl_phi
         # advance world state
@@ -132,10 +139,6 @@ class MultiVehicleEnv(gym.Env):
             self.GUI.init_viewer()
             self.GUI.init_object()
         self.GUI._render()
-        direction = []
-        for a in self.world.vehicle_list:
-            direction.append(a.data_slot['direction_obs'])
-        pass
     
     def ros_step(self,total_time):
         self.world.ros_step(total_time)

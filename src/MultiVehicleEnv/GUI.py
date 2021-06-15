@@ -144,7 +144,7 @@ class GUI(object):
         self.landmark_list = gui_data['landmark_list']
         self.obstacle_list = gui_data['obstacle_list']
         self.total_time = gui_data['total_time']
-        self.info = str(gui_data['info'])
+        self.info = gui_data['info']
         for obstacle, obstacle_geom in zip(self.obstacle_list, self.obstacle_geom_list):
             obstacle_geom['total_xform'].set_translation(obstacle.state.coordinate[0],obstacle.state.coordinate[1])
         for landmark, landmark_geom in zip(self.landmark_list, self.landmark_geom_list):
@@ -154,8 +154,11 @@ class GUI(object):
             vehicle_geom['total_xform'].set_rotation(vehicle.state.theta)
             vehicle_geom['total_xform'].set_translation(vehicle.state.coordinate[0],vehicle.state.coordinate[1])
         
+        info = ''
+        for key in self.info.keys():
+            info = info + str(key)+':'+str(self.info[key])+'\n'
             
-        self.viewer.render(time = '%.1f'%(self.total_time),info = self.info,return_rgb_array = self.mode=='rgb_array')
+        self.viewer.render(time = '%.1f'%(self.total_time),info = info,return_rgb_array = self.mode=='rgb_array')
 
     def _render_target(self):
         self.init_viewer()
