@@ -58,7 +58,7 @@ class Scenario(BaseScenario):
             entity.color  = [[0.0,0.0,0.0],1.0]
             world.obstacle_list.append(entity)
 
-        world.data_slot['max_step_number'] = 20
+        world.data_slot['max_step_number'] = 40
         # make initial conditions
         self.reset_world(world)
         return world
@@ -125,7 +125,16 @@ class Scenario(BaseScenario):
         world.data_slot['real_landmark'] = np.random.randint(len(world.landmark_list))
         real_landmark = world.landmark_list[world.data_slot['real_landmark']]
         real_landmark.color[1] = 1.0
-                        
+
+    def done(self, agent:Vehicle, world:World):
+        if agent.state.crashed:
+            return True
+        real_landmark = world.landmark_list[world.data_slot['real_landmark']]
+        dist = coord_dist(agent.state.coordinate, real_landmark.state.coordinate)
+        if dist < agent.r_safe +real_landmark.radius:
+            return True
+        return False
+    
     def reward(self, agent:Vehicle, world:World):
         # Adversaries are rewarded for collisions with agents
         rew:float = 0.0

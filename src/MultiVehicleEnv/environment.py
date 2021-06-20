@@ -41,7 +41,6 @@ class MultiVehicleEnv(gym.Env):
                 self.action_space.append(spaces.Box(low=-1.0,high=1.0,shape=(2,)))
             else:
                 self.action_space.append(spaces.Discrete(len(vehicle.discrete_table)))
-
         # observation space
         self.observation_space = []
         for vehicle in self.vehicle_list:
@@ -101,14 +100,14 @@ class MultiVehicleEnv(gym.Env):
         # record observation for each vehicle
         for vehicle in self.vehicle_list:
             obs_n.append(self._get_obs(vehicle))
-            reward_n.append([self._get_reward(vehicle)])
+            reward_n.append(self._get_reward(vehicle))
             done_n.append(self._get_done(vehicle))
 
             info_n['n'].append(self._get_info(vehicle))
         
         if  'max_step_number' in self.world.data_slot.keys():
             step_done = self.world.data_slot['max_step_number']<=self.world.data_slot['total_step_number']
-            info_n['step_done'] = step_done
+            info_n['TimeLimit.truncated'] = step_done
 
         # all vehicles get total reward in cooperative case
         reward = np.sum(reward_n)
