@@ -210,6 +210,7 @@ class World(object):
     def ros_step(self,total_time):
         self.total_time = total_time
         self._check_collision()
+        self.dumpGUI()
                 
 # warp one sim step into a function with pure math calculation
 def _update_one_sim_step_warp(state:VehicleState, vehicle:Vehicle, dt:float):
