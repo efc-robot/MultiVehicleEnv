@@ -3,9 +3,41 @@ from MultiVehicleEnv.basic import World, Vehicle, Entity
 from MultiVehicleEnv.scenario import BaseScenario
 from MultiVehicleEnv.utils import coord_dist, naive_inference
 
+def reset_state(agent:Vehicle):
+    agent.state.vel_b = 0
+    agent.state.phi = 0
+    agent.state.ctrl_vel_b = 0
+    agent.state.ctrl_phi = 0
+    agent.state.movable = True
+    agent.state.crashed = False
+    agent.state.theta
+    agent.state.coordinate[0] = 0
+    agent.state.coordinate[1] = 0
+
+def check_confilict(world:World):
+    coord_list = []
+    radius_list = []
+    for landmark in world.landmark_list:
+        coord_list.append(landmark.state.coordinate)
+        radius_list.append(landmark.radius)
+    for obstacle in world.obstacle_list:
+        coord_list.append(obstacle.state.coordinate)
+        radius_list.append(obstacle.radius)
+    for agent in world.vehicle_list:
+        coord_list.append(agent.state.coordinate)
+        radius_list.append(agent.r_safe)
+    
+    for idx_a in range(len(coord_list)):
+        for idx_b in range(idx_a+1,len(coord_list)):
+            dis = coord_dist(coord_list[idx_a], coord_list[idx_b])
+            if dis < radius_list[idx_a] + radius_list[idx_b]:
+                return True
+    return False
 
 class Scenario(BaseScenario):
     def make_world(self,args):
+        self.reward_coef = args.reward_coef 
+        self.control_coef = args.control_coef
         # init a world instance
         world = World()
 
@@ -67,35 +99,29 @@ class Scenario(BaseScenario):
         world.data_slot['total_step_number'] = 0
         # set random initial states
         for agent in world.vehicle_list:
+            reset_state(agent)
             agent.state.theta = np.random.uniform(0,2*3.14159)
-            agent.state.vel_b = 0
-            agent.state.phi = 0
-            agent.state.ctrl_vel_b = 0
-            agent.state.ctrl_phi = 0
-            agent.state.movable = True
-            agent.state.crashed = False
+            
         
         # place all landmark,obstacle and vehicles in the field with out conflict
-        conflict = True
-        while conflict:
-            conflict = False
-            all_circle = []
+        safe_count = 1000
+        while True:
+            if safe_count == 0:
+                print('can not place objects with no conflict')
+            safe_count -= 1
             for landmark in world.landmark_list:
                 for idx in range(2):
                     scale = world.field_half_size[idx]
                     trans = world.field_center[idx]
-                    norm_pos = np.random.uniform(-0.5,+0.5)
-                    norm_pos = norm_pos + (0.5 if norm_pos>0 else -0.5)
+                    norm_pos = np.random.uniform(-1,+1)
                     landmark.state.coordinate[idx] = norm_pos * scale + trans
-                all_circle.append((landmark.state.coordinate[0],landmark.state.coordinate[1],landmark.radius))
-    
+
             for obstacle in world.obstacle_list:
                 for idx in range(2):
                     scale = world.field_half_size[idx]
                     trans = world.field_center[idx]
                     norm_pos = np.random.uniform(-1,+1)
-                    obstacle.state.coordinate[idx] = norm_pos * scale*0.5 + trans
-                all_circle.append((obstacle.state.coordinate[0],obstacle.state.coordinate[1],obstacle.radius))
+                    obstacle.state.coordinate[idx] = norm_pos * scale + trans
     
             for agent in world.vehicle_list:
                 for idx in range(2):
@@ -103,58 +129,35 @@ class Scenario(BaseScenario):
                     trans = world.field_center[idx]
                     norm_pos = np.random.uniform(-1,+1)
                     agent.state.coordinate[idx] = norm_pos * scale + trans
-                all_circle.append((agent.state.coordinate[0],agent.state.coordinate[1],agent.r_safe))
             
-            for idx_a in range(len(all_circle)):
-                for idx_b in range(idx_a+1,len(all_circle)):
-                    x_a = all_circle[idx_a][0]
-                    y_a = all_circle[idx_a][1]
-                    r_a = all_circle[idx_a][2]
-                    x_b = all_circle[idx_b][0]
-                    y_b = all_circle[idx_b][1]
-                    r_b = all_circle[idx_b][2]
-                    dis = ((x_a - x_b)**2 + (y_a - y_b)**2)**0.5
-                    if dis < r_a + r_b:
-                        conflict = True
-                        break
-                if conflict:
-                    break
-        for landmark in world.landmark_list:
-            landmark.color[1] = 0.1
-        # set real landmark and make it color solid
-        world.data_slot['real_landmark'] = np.random.randint(len(world.landmark_list))
-        real_landmark = world.landmark_list[world.data_slot['real_landmark']]
-        real_landmark.color[1] = 1.0
+            conflict = check_confilict(world)
+            if not conflict:
+                break
+            
+
 
     def done(self, agent:Vehicle, world:World):
-        if agent.state.crashed:
-            return True
-        real_landmark = world.landmark_list[world.data_slot['real_landmark']]
-        dist = coord_dist(agent.state.coordinate, real_landmark.state.coordinate)
-        if dist < agent.r_safe +real_landmark.radius:
-            return True
         return False
     
-    def reward(self, agent:Vehicle, world:World):
-        # Adversaries are rewarded for collisions with agents
+    def reward(self, agent:Vehicle, world:World, old_world:World = None):
         rew:float = 0.0
-        real_landmark = world.landmark_list[world.data_slot['real_landmark']]
-
-
 
         # reach reward
         Allreach = True
-        real_landmark = world.landmark_list[world.data_slot['real_landmark']]
+
+        for agent_old, agent_new, landmark in zip(old_world.vehicle_list, world.vehicle_list, world.landmark_list):
+            dist_old = coord_dist(agent_old.state.coordinate, landmark.state.coordinate)
+            dist_new = coord_dist(agent_new.state.coordinate, landmark.state.coordinate)
+            rew += self.reward_coef*(dist_old-dist_new)
+            if dist_new < landmark.radius:
+                rew += 10.0
+            
         for agent_a in world.vehicle_list:
-            dist = coord_dist(agent_a.state.coordinate, real_landmark.state.coordinate)
-            if dist > agent_a.r_safe +real_landmark.radius:
-                Allreach = False
-        if Allreach:
-            rew += 1.0
+            rew += self.control_coef * agent_a.state.ctrl_vel_b**2
             
         # collision reward
         if agent.state.crashed:
-            rew -= 1.0
+            rew -= 10.0
         
         world.data_slot['total_step_number'] += 1
         return rew
@@ -186,10 +189,9 @@ class Scenario(BaseScenario):
         agent_pos = [get_pos(agent)]
 
         # check in view
-        in_view = 0.0
         landmark_pos = []
         for landmark in world.landmark_list:
-            landmark_pos.append(get_pos(landmark, agent))
+            landmark_pos.append(get_pos(landmark))
 
 
         # communication of all other agents
@@ -200,7 +202,42 @@ class Scenario(BaseScenario):
             other_pos.append(get_pos(other,agent))
         return np.concatenate(agent_pos + landmark_pos + obstacle_pos + other_pos)
 
+    def updata_callback(self, world:World):
+        crashed_list = []
+        reach_list = []
+        for agent, landmark in zip(world.vehicle_list,world.landmark_list):
+            if agent.state.crashed:
+                crashed_list.append(agent)
+            dist = coord_dist(agent.state.coordinate, landmark.state.coordinate)
+            if dist < landmark.radius:
+                reach_list.append(landmark)
+        for agent in crashed_list:
+            reset_state(agent)
+            agent.state.theta = np.random.uniform(0,2*3.14159)
+        check_confilict(world)
+        safe_count = 1000
+        while True:
+            if safe_count == 0:
+                print('can not place objects with no conflict')
+            safe_count -= 1
+            for landmark in reach_list:
+                for idx in range(2):
+                    scale = world.field_half_size[idx]
+                    trans = world.field_center[idx]
+                    norm_pos = np.random.uniform(-1,+1)
+                    landmark.state.coordinate[idx] = norm_pos * scale + trans
 
+            for agent in crashed_list:
+                for idx in range(2):
+                    scale = world.field_half_size[idx]
+                    trans = world.field_center[idx]
+                    norm_pos = np.random.uniform(-1,+1)
+                    agent.state.coordinate[idx] = norm_pos * scale + trans
+            
+            conflict = check_confilict(world)
+            if not conflict:
+                break
+            
 
     def info(self, agent:Vehicle, world:World):
         agent_info:dict = {}

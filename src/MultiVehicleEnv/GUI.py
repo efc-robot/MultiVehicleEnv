@@ -29,7 +29,7 @@ class GUI(object):
                     print('%s does not exist, wait for Simulator dump GUI data'%self.gui_port)
                     time.sleep(1)
         elif self.port_type == 'direct':
-            gui_data = self.gui_port.world.dumpGUI(port_type='direct')
+            gui_data = self.gui_port.dumpGUI(port_type='direct')
             return gui_data
 
 

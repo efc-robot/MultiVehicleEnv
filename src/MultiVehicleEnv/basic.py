@@ -6,6 +6,9 @@ import copy
 
 class VehicleState(object):
     def __init__(self):
+        self.reset()
+        
+    def reset(self):
         # center point position in x,y axis
         self.coordinate:List[float]= [0.0,0.0]
         # direction of car axis
@@ -74,12 +77,10 @@ class World(object):
         self.vehicle_list:List[Vehicle] = []
         self.landmark_list:List[Entity] = []
         self.obstacle_list:List[Entity] = []
+
         # range of the main field
         self.field_range:List[float] = [-1.0,-1.0,1.0,1.0]
-        # GUI port for GUI display, by a file in shared memory
-        self.GUI_port:str = '/dev/shm/gui_port'
-        # File handle for GUI
-        self.GUI_file:Union[BinaryIO,None] = None
+
         # Sim state for flow control not used yet
         self.sim_state:str = 'init'
 
@@ -88,8 +89,6 @@ class World(object):
 
         # split the step_t into sim_step pieces state simulation
         self.sim_step:int = 1000
-        # record total real-world time past by
-        self.total_time:float = 0.0
 
         # the data slot for additional data defined in scenario
         self.data_slot:Dict[str,Any] = {}
@@ -157,7 +156,7 @@ class World(object):
                 dist = ((vehicle_a.state.coordinate[0]-vehicle_b.state.coordinate[0])**2
                       +(vehicle_a.state.coordinate[1]-vehicle_b.state.coordinate[1])**2)**0.5
                 if dist < vehicle_a.r_safe + vehicle_b.r_safe:
-                    vehicle_a.state.collision = True
+                    vehicle_a.state.crashed = True
                     vehicle_a.state.movable = False
                     break
 
@@ -166,51 +165,9 @@ class World(object):
                 dist = ((vehicle_a.state.coordinate[0]-obstacle.state.coordinate[0])**2
                       +(vehicle_a.state.coordinate[1]-obstacle.state.coordinate[1])**2)**0.5
                 if dist < vehicle_a.r_safe + obstacle.radius:
-                    vehicle_a.state.collision = True
+                    vehicle_a.state.crashed = True
                     vehicle_a.state.movable = False
                     break
-    
-    # pickle the GUI data and dump to the sheard memory file
-    def dumpGUI(self, port_type = 'file'):
-        GUI_data = {'field_range':self.field_range,
-                    'total_time':self.total_time,
-                    'vehicle_list':self.vehicle_list,
-                    'landmark_list':self.landmark_list,
-                    'obstacle_list':self.obstacle_list,
-                    'info':self.data_slot}
-        if port_type == 'direct':
-            return copy.deepcopy(GUI_data)
-        if port_type == 'file':
-            if self.GUI_port is not None and self.GUI_file is None:
-                try:
-                    self.GUI_file = open(self.GUI_port, "w+b")
-                except IOError:
-                    print('open GUI_file %s failed'%self.GUI_port)
-            if self.GUI_port is not None:
-                self.GUI_file.seek(0)
-                pickle.dump(GUI_data,self.GUI_file)
-                self.GUI_file.flush()
-
-    # update state of the world
-    def step(self):
-        if self.GUI_port is not None:
-            for idx in range(self.sim_step):
-                self.total_time += self.sim_t
-                self._update_one_sim_step()
-                self._check_collision()
-                # if use GUI, slow down the simulation speed
-                time.sleep(self.sim_t)
-                self.dumpGUI()
-        else:
-            for idx in range(self.sim_step):
-                self.total_time += self.sim_t
-                self._update_one_sim_step()
-                self._check_collision()
-
-    def ros_step(self,total_time):
-        self.total_time = total_time
-        self._check_collision()
-        self.dumpGUI()
                 
 # warp one sim step into a function with pure math calculation
 def _update_one_sim_step_warp(state:VehicleState, vehicle:Vehicle, dt:float):

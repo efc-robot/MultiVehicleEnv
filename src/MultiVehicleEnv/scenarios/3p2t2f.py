@@ -155,7 +155,7 @@ class Scenario(BaseScenario):
                          real_landmark.state.coordinate[1] - agent.state.coordinate[1]]
             agent.data_slot['direction_obs'] = world.data_slot['direction_decoder'][encode_direction(direction)]
                         
-    def reward(self, agent:Vehicle, world:World):
+    def reward(self, agent:Vehicle, world:World, old_world:World):
                 # Adversaries are rewarded for collisions with agents
         rew:float = 0.0
         real_landmark = world.landmark_list[world.data_slot['real_landmark']]

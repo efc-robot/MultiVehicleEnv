@@ -240,6 +240,10 @@ class Scenario(BaseScenario):
         elif self.add_direction_encoder == 'disable':
             return np.concatenate(agent_pos + landmark_pos + obstacle_pos + other_pos)
 
+    def updata_callback(self, world:world):
+        for other in world.vehicle_list:
+            if other is agent: continue
+            other_pos.append(get_pos(other,agent))
 
 
     def info(self, agent:Vehicle, world:World):

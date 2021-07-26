@@ -29,7 +29,7 @@ parser.add_argument('--add_direction_encoder',type=str, default='keyboard')
 
 args = parser.parse_args()
 def policy(obs:np.ndarray)->int:
-    return random.randint(0,6)
-env = make_env('3p2t2f', args)
+    return [random.random()*2-1, random.random()*2-1]
+env = make_env('multi_reach', args)
 policy_list = [policy,policy,policy]
 wrap = EvaluateWrap(env,policy_list)
