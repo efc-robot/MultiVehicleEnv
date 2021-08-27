@@ -107,10 +107,11 @@ class MultiVehicleEnv(gym.Env):
         for idx in range(self.world.sim_step):
             self.total_time += self.world.sim_t
             self.world._update_one_sim_step()
+            self.world.assign_data_step()
             self.world._check_collision()
             if self.GUI_port is not None:
                 # if use GUI, slow down the simulation speed
-                time.sleep(self.world.sim_t)
+                #time.sleep(self.world.sim_t)
                 self.dumpGUI()
 
 
@@ -162,7 +163,10 @@ class MultiVehicleEnv(gym.Env):
     
     def ros_step(self,total_time):
         self.total_time = total_time
+        self.world.assign_data_step()
         self.world._check_collision()
+        if self.updata_callback is not None:
+            self.updata_callback(self.world)
         self.dumpGUI()
     
     def dumpGUI(self, port_type = 'file'):

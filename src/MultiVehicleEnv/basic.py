@@ -28,6 +28,7 @@ class VehicleState(object):
 
 class Vehicle(object):
     def __init__(self):
+        self.vehicle_id:str = 'none'
         # safe radius of the vehicle
         self.r_safe:float = 0.24
         # length of the vehicle
@@ -77,12 +78,11 @@ class World(object):
         self.vehicle_list:List[Vehicle] = []
         self.landmark_list:List[Entity] = []
         self.obstacle_list:List[Entity] = []
+        self.vehicle_id_list = []
+        self.data_interface = {}
 
         # range of the main field
         self.field_range:List[float] = [-1.0,-1.0,1.0,1.0]
-
-        # Sim state for flow control not used yet
-        self.sim_state:str = 'init'
 
         # real-world time duration for one MDP step
         self.step_t:float = 1.0
@@ -134,14 +134,29 @@ class World(object):
     def scripted_vehicles(self):
         raise NotImplementedError()
     
+    def assign_data_step(self):
+        for vehicle in self.vehicle_list:
+            state = vehicle.state
+            data_interface = self.data_interface[vehicle.vehicle_id]
+            state.coordinate[0] = data_interface['x']
+            state.coordinate[1] = data_interface['y']
+            state.theta = data_interface['theta']
+
+
     # update the physical state for one sim_step.
     def _update_one_sim_step(self):
         for vehicle in self.vehicle_list:
             state = vehicle.state
+            data_interface = self.data_interface[vehicle.vehicle_id]
+            data_interface['x'] = state.coordinate[0]
+            data_interface['y'] = state.coordinate[1]
+            data_interface['theta'] = state.theta
+            
             # if the vehicle is not movable, skip update its physical state
             if state.movable:
                 new_state_data = _update_one_sim_step_warp(state, vehicle, self.sim_t)
-                state.coordinate[0], state.coordinate[1], state.theta = new_state_data
+                data_interface['x'], data_interface['y'], data_interface['theta'] = new_state_data
+                
 
     # check collision state for each vehicle
     def _check_collision(self):

@@ -42,7 +42,7 @@ while True:
             tx = obs[i][4] - obs[i][0]
             ty = obs[i][5] - obs[i][1]
             theta =  np.arctan2(obs[i][3],obs[i][2])
-            c_action = naive_inference(tx,ty,theta,dist= 0.2,min_r = 0.3)
+            c_action = naive_inference(tx,ty,theta,dist= 0.4,min_r = 0.3)
             action.append(c_action)
         obs,reward,done,info = env.step(action)
         env.render()
