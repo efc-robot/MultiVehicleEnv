@@ -1,8 +1,5 @@
 from typing import *
 import numpy as np
-import pickle
-import time
-import copy
 
 class VehicleState(object):
     def __init__(self):
@@ -30,21 +27,21 @@ class Vehicle(object):
     def __init__(self):
         self.vehicle_id:str = 'none'
         # safe radius of the vehicle
-        self.r_safe:float = 0.24
+        self.r_safe:float = 0.17
         # length of the vehicle
-        self.L_car:float = 0.30
+        self.L_car:float = 0.250
         # width of the vehicle
-        self.W_car:float = 0.20
+        self.W_car:float = 0.185
         # distance between front and back wheel
         self.L_axis:float = 0.20
         # coefficient of back whell velocity control
-        self.K_vel:float = 0.18266
+        self.K_vel:float = 0.361
         # coefficient of front wheel deflection control
-        self.K_phi:float = 0.298
+        self.K_phi:float = 0.561
         # the acceleration of the back whell velocity
-        self.dv_dt:float = 2.0
+        self.dv_dt:float = 2.17
         # the angular acceleration of the back whell velocity
-        self.dphi_dt:float = 3.0
+        self.dphi_dt:float = 2.10
         # the color of the vehicle
         self.color:list[Union[list[float] , float]] = [[0.0,0.0,0.0],0.0]
         # the discrete action table of the vehicle, action_code -> (ctrl_vel,ctrl_phi) 
@@ -52,6 +49,7 @@ class Vehicle(object):
                                1:( 1.0, 0.0), 2:( 1.0, 1.0), 3:( 1.0, -1.0),
                                4:(-1.0, 0.0), 5:(-1.0, 1.0), 6:(-1.0, -1.0)}
         self.data_slot:Dict[str,Any]= {}
+
         # the state of the vehicle
         self.state:VehicleState = VehicleState()
 
