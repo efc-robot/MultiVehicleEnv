@@ -1,5 +1,7 @@
+# one agent test script
+
 import numpy as np
-from MultiVehicleEnv.basic import World, Vehicle, Entity
+from MultiVehicleEnv.basic import World, Vehicle,Obstacle,Landmark
 from MultiVehicleEnv.scenario import BaseScenario
 from MultiVehicleEnv.utils import coord_data_dist, naive_inference, hsv2rgb
 
@@ -119,7 +121,7 @@ class Scenario(BaseScenario):
         landmark_number = args.num_landmarks
         world.landmark_list = []
         for idx in range(landmark_number):
-            entity = Entity()
+            entity = Landmark()
             entity.radius = 0.4
             entity.collideable = False
             entity.color  = [[0.0,1.0,0.0],0.1]
@@ -129,7 +131,7 @@ class Scenario(BaseScenario):
         obstacle_number = args.num_obstacles
         world.obstacle_list = []
         for idx in range(obstacle_number):
-            entity = Entity()
+            entity = Obstacle()
             entity.radius = 0.2
             entity.collideable = True
             entity.color  = [[0.0,0.0,0.0],1.0]
@@ -201,7 +203,6 @@ class Scenario(BaseScenario):
                         break
                 if conflict:
                     break
-
         for agent in world.vehicle_list:
             agent_data = world.data_interface[agent.vehicle_id]
             target_x = world.landmark_list[0].state.coordinate[0]
@@ -290,10 +291,10 @@ class Scenario(BaseScenario):
             agt_dis.append(dis2agt)
             agt_ang.append(np.array([ang]))
 
-        for _ in range(2):
-            agt_dis.append(np.array([0.0]))
-            agt_ang.append(np.array([0.0]))
-        print(agt_dis , agt_ang , target_ang , target_dis , formation_err)
+        #for _ in range(2):
+        #    agt_dis.append(np.array([0.0]))
+        #    agt_ang.append(np.array([0.0]))
+        #print(agt_dis , agt_ang , target_ang , target_dis , formation_err)
         return np.concatenate(agt_dis + agt_ang + target_ang + target_dis + formation_err)
 
 

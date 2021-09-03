@@ -19,7 +19,7 @@ class MultiVehicleEnv(gym.Env):
                  info_callback:Callable=None,
                  done_callback:Callable=None,
                  updata_callback:Callable=None,
-                 GUI_port:Union[str,None] = '/dev/shm/gui_port',
+                 GUI_port:Union[str,None] = None,
                  shared_reward:bool = False):
 
         self.world = world
@@ -113,6 +113,8 @@ class MultiVehicleEnv(gym.Env):
                 # if use GUI, slow down the simulation speed
                 #time.sleep(self.world.sim_t)
                 self.dumpGUI()
+        
+        self.world._update_laser_sim_step()
 
 
         # record observation for each vehicle
@@ -150,6 +152,7 @@ class MultiVehicleEnv(gym.Env):
         self.total_time = 0.0
         # record observations for each vehicle
         obs_n = []
+        self.world._update_laser_sim_step()
         for vehicle_list in self.world.vehicle_list:
             obs_n.append(self._get_obs(vehicle_list))
         return obs_n
