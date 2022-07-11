@@ -3,7 +3,7 @@ This is a simulator designed for MARL(Multi-Agent Reinforcement Learning) Algori
 
 - The simulator models robots with Ackerman, Mecanum and differential steering and lidar, which can be applied to common tasks such as obstacle avoidance, navigation, environment exploration,etc.
 
-- We realize the method proposed in our paper to accelerate robot kinematics simulation and lidar rendering, achieving about 2.56 and 14.2 times simulation speedup respectively. 
+- We realize the method proposed in our paper to accelerate robot kinematics simulation and lidar rendering, achieving about **2.56** and **14.2** times simulation speedup respectively. 
 
 
 ![Demo](docs/demo.gif)
