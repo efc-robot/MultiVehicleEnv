@@ -6,7 +6,7 @@ This is a simulator designed for MARL(Multi-Agent Reinforcement Learning) Algori
 - We realize the method proposed in our paper to accelerate robot kinematics simulation and lidar rendering, achieving about 2.56 and 14.2 times simulation speedup respectively. 
 
 
-![](docs/demo.gif)
+![Demo](docs/demo.gif)
 
 ## Code Structure
 ```plaintext
